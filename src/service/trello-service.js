@@ -39,7 +39,8 @@ const insertCard = async (title, description, list_id) => {
 
 const getLists = async () => {
     const url = `${base_url}/boards/${trello_board_id}/lists?${_getCredentialsUri()}`;
-    return await get({ url });
+    const { data } = await get({ url });
+    return data;
 };
 
 const getListByName = async (name) => {
@@ -57,11 +58,12 @@ const getAllCardsTitles = async () => {
         promises.push(get({ url }));
     });
 
-    let cards = await Promise.all(promises);
-    cards = cards.flat(1);
-    cards = cards.map(card => card.name);
+    let responses = await Promise.all(promises);
+    const card_titles = responses.map(response => response.data)
+        .flat(1)
+        .map(card => card.name);
     
-    return cards;
+    return card_titles;
 };
 
 const arquiveList = async (name) => {
