@@ -1,0 +1,8 @@
+# NodeJS
+node_modules/*
+
+# Yarn
+yarn.lock
+
+# Environment variables
+.env
