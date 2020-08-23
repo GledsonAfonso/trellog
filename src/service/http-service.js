@@ -12,13 +12,14 @@ const _do = async ({ url, data, method, timeout = _timeout, headers = _headers }
         headers,
         data,
         timeout,
-        timeoutErrorMessage: `Timeout rejection. Time set ${timeout}ms`
+        timeoutErrorMessage: `Timeout rejection. Time set ${timeout}ms`,
+        validateStatus: (status) => status >= 200 && status < 500,
     };
 
     return await request(options);
 };
 
-const get = async ({ url, timeout, headers }) => (await _do({ url, method: 'GET', timeout, headers })).data;
+const get = async ({ url, timeout, headers }) => await _do({ url, method: 'GET', timeout, headers });
 const post = async ({ url, body, timeout, headers }) => await _do({ url, data: body, method: 'POST', timeout, headers });
 const put = async ({ url, body, timeout, headers }) => await _do({ url, data: body, method: 'PUT', timeout, headers });
 
