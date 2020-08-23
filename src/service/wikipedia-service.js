@@ -9,11 +9,4 @@ const searchFor = async (query) => {
     return await get({ url });
 };
 
-const getInfoboxFrom = async (query) => {
-    let { data: page } = await searchFor(query);
-    let $ = cheerio.load(page);
-    
-    return $('body > section > table.infobox.hproduct').html();
-};
-
-module.exports = { searchFor, getInfoboxFrom };
+module.exports = { searchFor };
