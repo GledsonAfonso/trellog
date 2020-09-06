@@ -22,4 +22,12 @@ describe('game service', () => {
 
         expect(gameInfo).toMatchObject(expectedResult);
     });
+
+    test('should give a blank object when no information is found', async () => {
+        const gameInfo = await getGameInfo('asfdjhjaksjldhflkjahjdlfh');
+
+        const expectedResult = {};
+
+        expect(gameInfo).toMatchObject(expectedResult);
+    });
 });

@@ -18,8 +18,6 @@ const getGameInfo = async (gameName) => {
     let { data: page } = await searchFor(gameName);
     let $ = cheerio.load(page);
 
-    // verificar como ele se comporta quando o infobox tem mais de um desenvolvedor e/ou publisher
-    // verificar como ele se comporta quando o jogo não é encontrado
     return $('body > section > table.infobox.hproduct > tbody > tr')
         .map((index, element) => {
             const isDeveloperInfo = $(element).find('th > a:contains("Developer")').html() !== null;
