@@ -2,25 +2,37 @@ const cheerio = require('cheerio');
 
 const { searchFor } = require('./wikipedia-service');
 
-const _getDescription = (developers, publishers) => `Developer(s): ${developers.join('; ')}\nPublisher(s): ${publishers.join('; ')}`;
+const _getSanitizedText = (infoText) => {
+    const prefixRegex = /^\n/;
+    const suffixRegex = /\n\n$/;
+    const generalRegex = /\n/g;
 
-const getGameInfo = async (game_name) => {
-    let { data: page } = await searchFor(game_name);
+    let sanitizedInfoText = infoText.replace(prefixRegex, '');
+    sanitizedInfoText = sanitizedInfoText.replace(suffixRegex, '');
+    sanitizedInfoText = sanitizedInfoText.replace(generalRegex, '; ');
+
+    return sanitizedInfoText;
+};
+
+const getGameInfo = async (gameName) => {
+    let { data: page } = await searchFor(gameName);
     let $ = cheerio.load(page);
 
+    // verificar como ele se comporta quando o infobox tem mais de um desenvolvedor e/ou publisher
+    // verificar como ele se comporta quando o jogo não é encontrado
     return $('body > section > table.infobox.hproduct > tbody > tr')
         .map((index, element) => {
-            const is_developer_info = $(element).find('th > a:contains("Developer")').html() !== null;
-            const is_publisher_info = $(element).find('th > a:contains("Publisher")').html() !== null;
+            const isDeveloperInfo = $(element).find('th > a:contains("Developer")').html() !== null;
+            const isPublisherInfo = $(element).find('th > a:contains("Publisher")').html() !== null;
 
             let result;
-            if (is_developer_info) {
+            if (isDeveloperInfo) {
                 result = {
                     key: 'developer',
                     value: $(element).find('td').text()
                 };
-            } else if (is_publisher_info) {
-                result = result = {
+            } else if (isPublisherInfo) {
+                result = {
                     key: 'publisher',
                     value: $(element).find('td').text()
                 };
@@ -28,9 +40,9 @@ const getGameInfo = async (game_name) => {
     
             return result;
         }).get()
-        .reduce((obj, item) => (obj[item.key] = item.value, obj), {});
+        .reduce((obj, item) => (obj[item.key] = _getSanitizedText(item.value), obj), {});
 };
 
-const createGameCardFor = async (game_name) => {};
+const createGameCardFor = async (gameName) => {};
 
 module.exports = { getGameInfo, createGameCardFor };

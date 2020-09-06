@@ -1,11 +1,11 @@
 const environment = require('../configuration/environment');
 const { get, post, put } = require('./http-service');
 
-const { trello_api_key, trello_api_token, trello_board_id } = environment;
-const base_url = 'https://api.trello.com/1';
+const { trelloApiKey, trelloApiToken, trelloBoardId } = environment;
+const baseUrl = 'https://api.trello.com/1';
 const credentials = {
-    key: trello_api_key,
-    token: trello_api_token
+    key: trelloApiKey,
+    token: trelloApiToken
 };
 
 const _getCredentialsUri = () => {
@@ -14,21 +14,21 @@ const _getCredentialsUri = () => {
 }
 
 const insertList = async (name) => {
-    const url = `${base_url}/lists`;
+    const url = `${baseUrl}/lists`;
     const body = {
         ...credentials,
-        idBoard: trello_board_id,
+        idBoard: trelloBoardId,
         name
     };
 
     return await post({ url, body });
 };
 
-const insertCard = async (title, description, list_id) => {
-    const url = `${base_url}/cards`;
+const insertCard = async (title, description, listId) => {
+    const url = `${baseUrl}/cards`;
     const body = {
         ...credentials,
-        idList: list_id,
+        idList: listId,
         name: title,
         desc: description,
         pos: 'top'
@@ -38,7 +38,7 @@ const insertCard = async (title, description, list_id) => {
 };
 
 const getLists = async () => {
-    const url = `${base_url}/boards/${trello_board_id}/lists?${_getCredentialsUri()}`;
+    const url = `${baseUrl}/boards/${trelloBoardId}/lists?${_getCredentialsUri()}`;
     const { data } = await get({ url });
     return data;
 };
@@ -50,25 +50,25 @@ const getListByName = async (name) => {
 
 const getAllCardsTitles = async () => {
     const lists = await getLists();
-    const list_ids = lists.map(list => list.id);
+    const listIds = lists.map(list => list.id);
 
     let promises = [];
-    list_ids.forEach(list_id => {
-        const url = `${base_url}/lists/${list_id}/cards?${_getCredentialsUri()}`;
+    listIds.forEach(listId => {
+        const url = `${baseUrl}/lists/${listId}/cards?${_getCredentialsUri()}`;
         promises.push(get({ url }));
     });
 
     let responses = await Promise.all(promises);
-    const card_titles = responses.map(response => response.data)
+    const cardTitles = responses.map(response => response.data)
         .flat(1)
         .map(card => card.name);
     
-    return card_titles;
+    return cardTitles;
 };
 
 const arquiveList = async (name) => {
     const list = await getListByName(name);
-    const url = `${base_url}/lists/${list.id}/closed`;
+    const url = `${baseUrl}/lists/${list.id}/closed`;
     const body = {
         ...credentials,
         value: true
