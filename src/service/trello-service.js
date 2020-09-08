@@ -45,7 +45,7 @@ const getLists = async () => {
 
 const getListByName = async (name) => {
     const lists = await getLists();
-    return lists.find(list => list.name.toLowerCase() === name);
+    return lists.find(list => list.name.toLowerCase() === name.toLowerCase());
 };
 
 const getAllCardsTitles = async () => {
