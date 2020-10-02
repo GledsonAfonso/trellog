@@ -1,58 +1,53 @@
-const { insertCard, insertList, getLists, getListByName, getAllCardsTitles, arquiveList } = require('../../src/service/trello-service');
+const { insertCard, insertList, getLists, getListByName, getCards, getCardBy, arquiveList, deleteCardBy } = require('../../src/service/trello-service');
 
 const testListName = 'test';
+const testCardName = 'test';
+const testCardDescription = 'this is a test';
 
-let isTestListPresent = false;
 let testListId;
 
 describe('trello service', () => {
-    beforeEach(async () => {
-        if (!isTestListPresent) {
-            
-            const list = await getListByName(testListName);
-            if (!list) {
-                const { data } = await insertList(testListName);
-                testListId = data.id;
-            } else {
-                testListId = list.id;
-            }
+    test('should be able to insert a new list in board', async () => {
+        const { status, data } = await insertList(testListName);
+        expect(status).toBe(200);
 
-            isTestListPresent = true;
-        }
-    });
-
-    test('should be able to insert new lists in board', async () => {
-        const listName = 'test2';
-
-        const insertResponse = await insertList(listName);
-        expect(insertResponse.status).toBe(200);
-
-        const arquiveResponse = await arquiveList(listName);
-        expect(arquiveResponse.status).toBe(200);
+        testListId = data.id;
     });
 
     test('should be able to insert a card into a list', async () => {
-        const insertResult = await insertCard('test', 'this is a test', testListId);
-        expect(insertResult.status).toBe(200);
+        const { status } = await insertCard(testCardName, testCardDescription, testListId);
+        expect(status).toBe(200);
     });
 
     test('should be able to get all lists in the board', async () => {
-        const lists = await getLists();
-        expect(lists.length).toBeGreaterThan(0);
+        const { length } = await getLists();
+        expect(length).toBeGreaterThan(0);
     });
 
     test('should be able to get a list by its name', async () => {
-        const list = await getListByName(testListName);
-        expect(list.name).toMatch(testListName);
+        const { name } = await getListByName(testListName);
+        expect(name).toMatch(testListName);
     });
 
     test('should be able to get all cards in the board', async () => {
-        const cards = await getAllCardsTitles();
-        expect(cards.length).toBeGreaterThan(0);
+        const { length } = await getCards();
+        expect(length).toBeGreaterThan(0);
+    });
+
+    test('should be able to get a card by its title', async () => {
+        const { name, desc } = await getCardBy(testCardName, testListName);
+
+        expect(name).toMatch(testCardName);
+        expect(desc).toMatch(testCardDescription);
+    });
+
+    test('should be able to delete a card by its name', async () => {
+        const { status } = await deleteCardBy(testCardName, testListName);
+        expect(status).toBe(200);
     });
 
     test('should be able to archive a list', async () => {
-        let arquiveResponse = await arquiveList(testListName);
-        expect(arquiveResponse.status).toBe(200);
+        let { status } = await arquiveList(testListName);
+        expect(status).toBe(200);
     });
 });

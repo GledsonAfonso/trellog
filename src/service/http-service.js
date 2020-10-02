@@ -22,5 +22,6 @@ const _do = async ({ url, data, method, timeout = _timeout, headers = _headers }
 const get = async ({ url, timeout, headers }) => await _do({ url, method: 'GET', timeout, headers });
 const post = async ({ url, body, timeout, headers }) => await _do({ url, data: body, method: 'POST', timeout, headers });
 const put = async ({ url, body, timeout, headers }) => await _do({ url, data: body, method: 'PUT', timeout, headers });
+const del = async ({ url, timeout, headers }) => await _do({ url, method: 'DELETE', timeout, headers });
 
-module.exports = { get, post, put };
+module.exports = { get, post, put, del };

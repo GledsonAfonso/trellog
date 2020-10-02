@@ -1,5 +1,5 @@
 const environment = require('../configuration/environment');
-const { get, post, put } = require('./http-service');
+const { get, post, put, del } = require('./http-service');
 
 const { trelloApiKey, trelloApiToken, trelloBoardId } = environment;
 const baseUrl = 'https://api.trello.com/1';
@@ -11,7 +11,7 @@ const credentials = {
 const _getCredentialsUri = () => {
     const { key, token } = credentials;
     return `key=${key}&token=${token}`;
-}
+};
 
 const insertList = async (name) => {
     const url = `${baseUrl}/lists`;
@@ -48,22 +48,33 @@ const getListByName = async (name) => {
     return lists.find(list => list.name.toLowerCase() === name.toLowerCase());
 };
 
-const getAllCardsTitles = async () => {
+const getCards = async () => {
     const lists = await getLists();
     const listIds = lists.map(list => list.id);
-
+    
     let promises = [];
     listIds.forEach(listId => {
         const url = `${baseUrl}/lists/${listId}/cards?${_getCredentialsUri()}`;
         promises.push(get({ url }));
     });
-
-    let responses = await Promise.all(promises);
-    const cardTitles = responses.map(response => response.data)
-        .flat(1)
-        .map(card => card.name);
     
-    return cardTitles;
+    let responses = await Promise.all(promises);
+
+    return responses.map(response => response.data);
+};
+
+const getCardBy = async (name, listName) => {
+    let result;
+
+    const cards = await getCards();
+    const { id: listId } = await getListByName(listName);
+    result = cards.flat(1).filter(card => card.name.toLowerCase() === name.toLowerCase() && card.idList === listId);
+
+    if (result) {
+        result = result[0];
+    }
+
+    return result;
 };
 
 const arquiveList = async (name) => {
@@ -77,4 +88,11 @@ const arquiveList = async (name) => {
     return await put({ url, body });
 };
 
-module.exports = { insertList, insertCard, getLists, getListByName, getAllCardsTitles, arquiveList };
+const deleteCardBy = async (name, listName) => {
+    const { id } = await getCardBy(name, listName);
+    const url = `${baseUrl}/cards/${id}?${_getCredentialsUri()}`;
+
+    return del({ url });
+};
+
+module.exports = { insertList, insertCard, getLists, getCards, getCardBy, getListByName, arquiveList, deleteCardBy };
