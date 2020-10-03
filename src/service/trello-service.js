@@ -1,5 +1,6 @@
 const environment = require('../configuration/environment');
 const { get, post, put, del } = require('./http-service');
+const { removeEmptyPropertiesFrom } = require('../util/object-utils');
 
 const { trelloApiKey, trelloApiToken, trelloBoardId } = environment;
 const baseUrl = 'https://api.trello.com/1';
@@ -11,6 +12,26 @@ const credentials = {
 const _getCredentialsUri = () => {
     const { key, token } = credentials;
     return `key=${key}&token=${token}`;
+};
+
+const _getUpdatedCard = async (card, { description, listName }) => {
+    let newCard = {
+        desc: description
+    };
+
+    if (listName) {
+        const { id } = await getListByName(listName);
+        newCard.idList = id;
+    }
+
+    removeEmptyPropertiesFrom(newCard);
+
+    newCard = {
+        ...card,
+        ...newCard
+    };
+
+    return newCard;
 };
 
 const insertList = async (name) => {
@@ -77,6 +98,16 @@ const getCardBy = async (name, listName) => {
     return result;
 };
 
+const updateCard = async (originalName, originalListName, updates = {}) => {
+    let card = await getCardBy(originalName, originalListName);
+    card = await _getUpdatedCard(card, updates);
+
+    const url = `${baseUrl}/cards/${card.id}?${_getCredentialsUri()}`;
+
+    const { data } = await put({ url, body: card });
+    return data;
+};
+
 const arquiveList = async (name) => {
     const list = await getListByName(name);
     const url = `${baseUrl}/lists/${list.id}/closed`;
@@ -95,4 +126,4 @@ const deleteCardBy = async (name, listName) => {
     return del({ url });
 };
 
-module.exports = { insertList, insertCard, getLists, getCards, getCardBy, getListByName, arquiveList, deleteCardBy };
+module.exports = { insertList, insertCard, getLists, getCards, getCardBy, getListByName, updateCard, arquiveList, deleteCardBy };

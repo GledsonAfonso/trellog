@@ -1,21 +1,27 @@
-const { insertCard, insertList, getLists, getListByName, getCards, getCardBy, arquiveList, deleteCardBy } = require('../../src/service/trello-service');
+const { insertCard, insertList, getLists, getListByName, getCards, getCardBy, updateCard, arquiveList, deleteCardBy } = require('../../src/service/trello-service');
 
-const testListName = 'test';
-const testCardName = 'test';
-const testCardDescription = 'this is a test';
+const generalTestListName = 'test';
+const updateTestListName = 'new test list';
+const generalTestCardName = 'test';
+const generalTestCardDescription = 'this is a test';
 
-let testListId;
+let generalTestListId;
+let updateTestListId;
 
 describe('trello service', () => {
     test('should be able to insert a new list in board', async () => {
-        const { status, data } = await insertList(testListName);
-        expect(status).toBe(200);
-
-        testListId = data.id;
+        const insertGeneralTestListResponse = await insertList(generalTestListName);
+        const insertUpdateTestListResponse = await insertList(updateTestListName);
+        
+        expect(insertGeneralTestListResponse.status).toBe(200);
+        expect(insertUpdateTestListResponse.status).toBe(200);
+        
+        generalTestListId = insertGeneralTestListResponse.data.id;
+        updateTestListId = insertUpdateTestListResponse.data.id;
     });
 
     test('should be able to insert a card into a list', async () => {
-        const { status } = await insertCard(testCardName, testCardDescription, testListId);
+        const { status } = await insertCard(generalTestCardName, generalTestCardDescription, generalTestListId);
         expect(status).toBe(200);
     });
 
@@ -25,8 +31,8 @@ describe('trello service', () => {
     });
 
     test('should be able to get a list by its name', async () => {
-        const { name } = await getListByName(testListName);
-        expect(name).toMatch(testListName);
+        const { name } = await getListByName(generalTestListName);
+        expect(name).toMatch(generalTestListName);
     });
 
     test('should be able to get all cards in the board', async () => {
@@ -35,19 +41,37 @@ describe('trello service', () => {
     });
 
     test('should be able to get a card by its title', async () => {
-        const { name, desc } = await getCardBy(testCardName, testListName);
+        const { name, desc } = await getCardBy(generalTestCardName, generalTestListName);
 
-        expect(name).toMatch(testCardName);
-        expect(desc).toMatch(testCardDescription);
+        expect(name).toMatch(generalTestCardName);
+        expect(desc).toMatch(generalTestCardDescription);
+    });
+
+    test('should be able to update a card by its name and list name', async () => {
+        const newDescription = 'blablabla';
+        const { name, desc } = await updateCard(generalTestCardName, generalTestListName, { description: newDescription });
+
+        expect(name).toBe(generalTestCardName);
+        expect(desc).toBe(newDescription);
+    });
+
+    test('should be able to update a card putting it in another list', async () => {
+        const { name, idList } = await updateCard(generalTestCardName, generalTestListName, { listName: updateTestListName });
+
+        expect(name).toBe(generalTestCardName);
+        expect(idList).toBe(updateTestListId);
     });
 
     test('should be able to delete a card by its name', async () => {
-        const { status } = await deleteCardBy(testCardName, testListName);
+        const { status } = await deleteCardBy(generalTestCardName, updateTestListName);
         expect(status).toBe(200);
     });
 
     test('should be able to archive a list', async () => {
-        let { status } = await arquiveList(testListName);
-        expect(status).toBe(200);
+        let arquiveGeneralTestListResponse = await arquiveList(generalTestListName);
+        let arquiveUpdateTestListResponse = await arquiveList(updateTestListName);
+        
+        expect(arquiveGeneralTestListResponse.status).toBe(200);
+        expect(arquiveUpdateTestListResponse.status).toBe(200);
     });
 });
