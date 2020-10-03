@@ -1,6 +1,6 @@
 const cheerio = require('cheerio');
 
-const { insertList, insertCard, getListByName } = require('./trello-service');
+const { insertList, insertCard, getListByName, deleteCardBy } = require('./trello-service');
 const { searchFor } = require('./wikipedia-service');
 const { isBlank } = require('../util/object-utils');
 
@@ -70,19 +70,17 @@ const getGameInfo = async (gameName) => {
     return result;
 };
 
-const createGameCardFor = async (gameName) => {
-    const listName = 'Temp';
-    
+const createGameCardFor = async ({ name, listName = 'Temp' }) => {
     let title;
     let description;
 
-    const gameInfo = await getGameInfo(gameName);
+    const gameInfo = await getGameInfo(name);
 
     if (!isBlank(gameInfo)) {
         title = gameInfo.title;
         description = `Developer(s): ${gameInfo.developer}\n\nPublisher(s): ${gameInfo.publisher}`;
     } else {
-        title = gameName;
+        title = name;
         description = 'Developer(s): \n\nPublisher(s): ';
     }
 
@@ -90,4 +88,6 @@ const createGameCardFor = async (gameName) => {
     return await insertCard(title, description, listId);
 };
 
-module.exports = { getGameInfo, createGameCardFor };
+const deleteGameCardBy = async ({ name, listName = 'Temp' }) => await deleteCardBy(name, listName);
+
+module.exports = { getGameInfo, createGameCardFor, deleteGameCardBy };

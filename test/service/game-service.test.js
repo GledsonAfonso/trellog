@@ -1,4 +1,4 @@
-const { getGameInfo, createGameCardFor } = require('../../src/service/game-service')
+const { getGameInfo, createGameCardFor, deleteGameCardBy } = require('../../src/service/game-service')
 
 describe('game service', () => {
     test('should be able to get game info', async () => {
@@ -31,16 +31,24 @@ describe('game service', () => {
         expect(gameInfo).toBeUndefined();
     });
 
-    test(`should be able to create a card with all the game's info, given its name its name`, async () => {
-        const { status } = await createGameCardFor('Corpse Party');
+    test(`should be able to create a card with all the game's info, given its name`, async () => {
+        const { status } = await createGameCardFor({ name: 'Corpse Party', listName: 'test' });
         expect(status).toBe(200);
     });
 
     test(`should be able to create a card with a default template when no info is found about the game, given its name`, async () => {
-        const { status, data } = await createGameCardFor('asdfasdfasdf');
+        const { status, data } = await createGameCardFor({ name: 'asdfasdfasdf', listName: 'test' });
         const expectedData = { name: 'asdfasdfasdf' };
 
         expect(status).toBe(200);
         expect(data).toMatchObject(expectedData);
+    });
+
+    test('should delete a game card by its name', async () => {
+        const firstCardDeletion = await deleteGameCardBy({ name: 'Corpse Party', listName: 'test' });
+        const secondCardDeletion = await deleteGameCardBy({ name: 'asdfasdfasdf', listName: 'test' });
+
+        expect(firstCardDeletion.status).toBe(200);
+        expect(secondCardDeletion.status).toBe(200);
     });
 });
