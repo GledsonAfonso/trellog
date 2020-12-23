@@ -3,8 +3,10 @@
   "version": "1.0.0",
   "description": "A simple application to search for a game's info and insert it on your Trello board as a card",
   "main": "index.js",
+  "type": "commonjs",
   "scripts": {
-    "test": "jest --detectOpenHandles"
+    "test": "jest --detectOpenHandles",
+    "start": "node index.js"
   },
   "keywords": [
     "trello",
@@ -14,8 +16,12 @@
   "license": "MIT",
   "dependencies": {
     "axios": "^0.20.0",
+    "chalk": "^4.1.0",
     "cheerio": "^1.0.0-rc.3",
-    "dotenv": "^8.2.0"
+    "clear": "^0.1.0",
+    "dotenv": "^8.2.0",
+    "figlet": "^1.5.0",
+    "inquirer": "^7.3.3"
   },
   "devDependencies": {
     "jest": "^26.4.2"
