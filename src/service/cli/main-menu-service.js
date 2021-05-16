@@ -7,7 +7,7 @@ const MainMenuChoice = {
   EXIT: 'Exit'
 };
 
-const prompts = [
+const _prompts = [
   {
     type: 'list',
     name: 'mainMenu',
@@ -40,14 +40,16 @@ const _act = async (answers) => {
       break;
     default:
       console.log('Exiting...');
-      break;
+      process.exit(0);
   }
 };
 
-const mainMenu = () => {
-  inquirer
-    .prompt(prompts)
-    .then(_act);
+const mainMenu = async () => {
+  while (true) {
+    await inquirer
+      .prompt(_prompts)
+      .then(_act);
+  }
 };
 
 module.exports = { mainMenu };
