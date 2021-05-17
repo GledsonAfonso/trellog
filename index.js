@@ -1,4 +1,5 @@
 require('dotenv').config();
+require('./src/configuration/environment');
 
 const clear = require('clear');
 const figlet = require('figlet');
