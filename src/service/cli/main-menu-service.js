@@ -10,9 +10,9 @@ const MainMenuSteps = {
 const _act = async (answers) => {
   switch (answers?.mainMenu) {
     case MainMenuSteps.INSERT_NEW_GAME_CARD:
-      if (answers?.chooseListName) {
+      if (answers?.chooseList && answers?.chooseLabel) {
         console.log('Inserting new card...');
-        const { status } = await createGameCardFor({ name: answers?.insertNewGameCard, listName: answers?.chooseListName });
+        const { status } = await createGameCardFor({ name: answers.insertNewGameCard, listName: answers.chooseList, labelNames: answers.chooseLabel });
   
         if (status === 200) {
           console.log('Card inserted!');
@@ -27,7 +27,10 @@ const _act = async (answers) => {
   }
 };
 
-const mainMenu = async (list_names) => {
+const mainMenu = async (lists = [], labels = []) => {
+  const listNames = lists.map(it => it.name);
+  const labelNames = labels.map(it => it.name);
+
   const prompts = [
     {
       type: 'list',
@@ -46,11 +49,19 @@ const mainMenu = async (list_names) => {
     },
     {
       type: 'list',
-      name: 'chooseListName',
+      name: 'chooseList',
       message: 'Add it in which list?',
-      choices: list_names,
-      default: list_names.find(it => it.toLowerCase().includes('temp')),
-      when: (answers) => answers?.mainMenu === MainMenuSteps.INSERT_NEW_GAME_CARD
+      choices: listNames,
+      default: listNames.find(it => it.toLowerCase().includes('temp')),
+      when: (answers) => answers?.mainMenu === MainMenuSteps.INSERT_NEW_GAME_CARD && listNames?.length > 0
+    },
+    {
+      type: 'checkbox',
+      name: 'chooseLabel',
+      message: 'With which label?',
+      choices: labelNames,
+      default: labelNames.find(it => it.toLowerCase().includes('steam')),
+      when: (answers) => answers?.mainMenu === MainMenuSteps.INSERT_NEW_GAME_CARD && labelNames?.length > 0
     }
   ];
 

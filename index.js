@@ -5,8 +5,8 @@ const clear = require('clear');
 const figlet = require('figlet');
 const chalk = require('chalk');
 
+const { getCachedLists, getCachedLabels } = require('./src/service/board-service');
 const { mainMenu } = require('./src/service/cli/main-menu-service');
-const { getLists } = require('./src/service/trello-service');
 
 clear();
 
@@ -17,8 +17,8 @@ console.log(
 );
 
 (async () => {
-  const lists = await getLists();
-  const list_names = lists?.map(it => it.name);
+  const lists = await getCachedLists();
+  const labels = await getCachedLabels();
   
-  await mainMenu(list_names);
+  await mainMenu(lists, labels);
 })();

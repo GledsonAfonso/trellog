@@ -1,23 +1,9 @@
 const cheerio = require('cheerio');
 
-const { insertList, insertCard, getListByName, deleteCardBy } = require('./trello-service');
+const { insertCard, deleteCardBy } = require('./trello-service');
 const { searchFor } = require('./wikipedia-service');
 const { isBlank } = require('../util/object-utils');
-
-const _getListIdBy = async (listName) => {
-    let result;
-    
-    const list = await getListByName(listName);
-
-    if (!list) {
-        const { data } = await insertList(listName);
-        result = data.id;
-    } else {
-        result = list.id;
-    }
-
-    return result;
-};
+const { getCachedLabels, getCachedLists } = require('./board-service');
 
 const _getSanitizedText = (infoText) => {
     const prefixRegex = /^\n/;
@@ -70,7 +56,7 @@ const getGameInfo = async (gameName) => {
     return result;
 };
 
-const createGameCardFor = async ({ name, listName = 'Temp' }) => {
+const createGameCardFor = async ({ name, listName, labelNames = [] }) => {
     let title;
     let description;
 
@@ -84,8 +70,18 @@ const createGameCardFor = async ({ name, listName = 'Temp' }) => {
         description = 'Developer(s): \n\nPublisher(s): ';
     }
 
-    const listId = await _getListIdBy(listName);
-    return await insertCard(title, description, listId);
+    const lists = await getCachedLists();
+    const list = lists.find(list => list.name.toLowerCase() === listName.toLowerCase());
+    const listId = list?.id;
+
+    const filterLabelsWithUserChoicesFn = label => labelNames
+        .map(it => it.toLowerCase())
+        .includes(label.name.toLowerCase());
+    const labels = await getCachedLabels();
+    const sanitizedLabels = labels.filter(filterLabelsWithUserChoicesFn);
+    const labelIds = sanitizedLabels?.map(label => label.id);
+
+    return await insertCard(title, description, listId, labelIds);
 };
 
 const deleteGameCardBy = async ({ name, listName = 'Temp' }) => await deleteCardBy(name, listName);

@@ -45,17 +45,26 @@ const insertList = async (name) => {
     return await post({ url, body });
 };
 
-const insertCard = async (title, description, listId) => {
+const insertCard = async (title, description, listId, labelIds) => {
     const url = `${baseUrl}/cards`;
     const body = {
         ...credentials,
         idList: listId,
         name: title,
         desc: description,
-        pos: 'top'
+        pos: 'top',
+        idLabels: labelIds
     };
 
     return await post({ url, body });
+};
+
+const getLabels = async () => {
+    const url = `${baseUrl}/boards/${trelloBoardId}/labels?${_getCredentialsUri()}`;
+    const { data } = await get({ url });
+    const filteredData = data.filter(it => Boolean(it.name));
+
+    return filteredData;
 };
 
 const getLists = async () => {
@@ -108,7 +117,7 @@ const updateCard = async (originalName, originalListName, updates = {}) => {
     return data;
 };
 
-const arquiveList = async (name) => {
+const archiveList = async (name) => {
     const list = await getListByName(name);
     const url = `${baseUrl}/lists/${list.id}/closed`;
     const body = {
@@ -126,4 +135,15 @@ const deleteCardBy = async (name, listName) => {
     return del({ url });
 };
 
-module.exports = { insertList, insertCard, getLists, getCards, getCardBy, getListByName, updateCard, arquiveList, deleteCardBy };
+module.exports = {
+    insertList,
+    insertCard,
+    getLabels,
+    getLists,
+    getCards,
+    getCardBy,
+    getListByName,
+    updateCard,
+    archiveList,
+    deleteCardBy
+};

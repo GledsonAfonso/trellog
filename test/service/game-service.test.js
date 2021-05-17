@@ -1,6 +1,16 @@
-const { getGameInfo, createGameCardFor, deleteGameCardBy } = require('../../src/service/game-service')
+const { getGameInfo, createGameCardFor, deleteGameCardBy } = require('../../src/service/game-service');
+
+const { setup, teardown } = require('../setup-utils');
 
 describe('game service', () => {
+    beforeAll(async () => {
+        await setup();
+    });
+
+    afterAll(async () => {
+        await teardown();
+    });
+
     test('should be able to get game info', async () => {
         const gameInfo = await getGameInfo('Super Mario Bros. 3');
 
