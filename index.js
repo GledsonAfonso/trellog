@@ -6,6 +6,7 @@ const figlet = require('figlet');
 const chalk = require('chalk');
 
 const { mainMenu } = require('./src/service/cli/main-menu-service');
+const { getLists } = require('./src/service/trello-service');
 
 clear();
 
@@ -15,4 +16,9 @@ console.log(
   )
 );
 
-mainMenu();
+(async () => {
+  const lists = await getLists();
+  const list_names = lists?.map(it => it.name);
+  
+  await mainMenu(list_names);
+})();
