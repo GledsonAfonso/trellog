@@ -6,3 +6,6 @@ yarn.lock
 
 # Environment variables
 .env
+
+# Others
+*.txt

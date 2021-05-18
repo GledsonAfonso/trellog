@@ -1,25 +1,39 @@
 const inquirer = require('inquirer');
+const inquirerFileTreeSelection = require('inquirer-file-tree-selection-prompt');
 
 const { createGameCardFor } = require('../game-service');
+const { getGameNamesFromFile } = require('../file-service');
 
 const MainMenuSteps = {
   INSERT_NEW_GAME_CARD: 'Insert a new game card',
+  INSERT_NEW_GAME_CARDS_USING_FILE: 'Insert new game cards using a file',
   EXIT: 'Exit'
+};
+
+const addCard = async (name, listName, labelNames) => {
+  console.log(`Inserting new card for ${name}...`);
+  const { status } = await createGameCardFor({ name, listName, labelNames });
+
+  if (status === 200) {
+    console.log(`Card for ${name} inserted!`);
+  } else {
+    console.log(`Card not inserted for ${name}! Error code: ${status}`);
+  }
 };
 
 const _act = async (answers) => {
   switch (answers?.mainMenu) {
     case MainMenuSteps.INSERT_NEW_GAME_CARD:
       if (answers?.chooseList && answers?.chooseLabel) {
-        console.log('Inserting new card...');
-        const { status } = await createGameCardFor({ name: answers.insertNewGameCard, listName: answers.chooseList, labelNames: answers.chooseLabel });
-  
-        if (status === 200) {
-          console.log('Card inserted!');
-        } else {
-          console.log(`Card not inserted! Error code: ${status}`);
-        }
+        await addCard(answers.insertNewGameCard, answers.chooseList, answers.chooseLabel);
       }
+      break;
+    case MainMenuSteps.INSERT_NEW_GAME_CARDS_USING_FILE:
+      const filePath = answers.insertNewGameCardsUsingFile;
+      const names = getGameNamesFromFile(filePath);
+
+      const promises = names.map(name => addCard(name));
+      await Promise.all(promises);
       break;
     default:
       console.log('Exiting...');
@@ -38,6 +52,7 @@ const mainMenu = async (lists = [], labels = []) => {
       message: 'What would you want to do?',
       choices: [
         MainMenuSteps.INSERT_NEW_GAME_CARD,
+        MainMenuSteps.INSERT_NEW_GAME_CARDS_USING_FILE,
         MainMenuSteps.EXIT
       ]
     },
@@ -62,8 +77,17 @@ const mainMenu = async (lists = [], labels = []) => {
       choices: labelNames,
       default: labelNames.find(it => it.toLowerCase().includes('steam')),
       when: (answers) => answers?.mainMenu === MainMenuSteps.INSERT_NEW_GAME_CARD && labelNames?.length > 0
+    },
+    {
+      type: 'file-tree-selection',
+      name: 'insertNewGameCardsUsingFile',
+      message: 'Choose the path to the file: ',
+      root: './',
+      when: (answers) => answers?.mainMenu === MainMenuSteps.INSERT_NEW_GAME_CARDS_USING_FILE
     }
   ];
+
+  inquirer.registerPrompt('file-tree-selection', inquirerFileTreeSelection);
 
   while (true) {
     await inquirer
