@@ -3,6 +3,10 @@ const { getLabels, getLists } = require('./trello-service');
 let lists = [];
 let labels = [];
 
+const addToCachedList = (list) => {
+    lists.push(list);
+};
+
 const getCachedLists = async () => {
     if (lists.length === 0) {
         lists = await getLists();
@@ -19,4 +23,4 @@ const getCachedLabels = async () => {
     return labels;
 };
 
-module.exports = { getCachedLists, getCachedLabels };
+module.exports = { addToCachedList, getCachedLists, getCachedLabels };

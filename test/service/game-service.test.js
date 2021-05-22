@@ -1,4 +1,6 @@
+const { getCachedLists } = require('../../src/service/board-service');
 const { getGameInfo, createGameCardFor, deleteGameCardBy } = require('../../src/service/game-service');
+const { archiveList } = require('../../src/service/trello-service');
 
 const { setup, teardown } = require('../setup-utils');
 
@@ -60,5 +62,22 @@ describe('game service', () => {
 
         expect(firstCardDeletion.status).toBe(200);
         expect(secondCardDeletion.status).toBe(200);
+    });
+
+    test('should be able to create a card without labels and in a list that doesn\'t exist, creating it in the process', async () => {
+        const name = 'some card name';
+        const listName = 'test2';
+
+        const { status, data } = await createGameCardFor({ name, listName });
+        const lists = await getCachedLists();
+        const listId = lists.filter(list => list.name === listName)[0].id;
+
+        const expectedData = { name, idList: listId };
+
+        expect(status).toBe(200);
+        expect(data).toMatchObject(expectedData);
+
+        const { status: archiveStatus } = await archiveList(listName);
+        expect(archiveStatus).toBe(200);
     });
 });

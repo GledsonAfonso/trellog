@@ -1,9 +1,8 @@
 const cheerio = require('cheerio');
 
-const { insertCard, deleteCardBy } = require('./trello-service');
+const { insertCard, insertList, deleteCardBy } = require('./trello-service');
 const { searchFor } = require('./wikipedia-service');
-const { isBlank } = require('../util/object-utils');
-const { getCachedLabels, getCachedLists } = require('./board-service');
+const { addToCachedList, getCachedLists, getCachedLabels } = require('./board-service');
 
 const _getSanitizedText = (infoText) => {
     const prefixRegex = /^\n/;
@@ -15,6 +14,34 @@ const _getSanitizedText = (infoText) => {
     sanitizedInfoText = sanitizedInfoText.replace(generalRegex, '; ');
 
     return sanitizedInfoText;
+};
+
+const _getDescription = (developer = '', publisher = '') => `Developer(s): ${developer}\n\nPublisher(s): ${publisher}`;
+
+const _getCardContentFrom = (title, gameInfo) => {
+    const gameCardContent = {
+        title: '',
+        description: ''
+    };
+
+    gameCardContent.title = (gameInfo?.title) ? gameInfo.title : title;
+    gameCardContent.description = _getDescription(gameInfo?.developer, gameInfo?.publisher);
+
+    return gameCardContent;
+};
+
+const _getListId = async (listName) => {
+    const lists = await getCachedLists();
+
+    let list = lists.find(list => list.name.toLowerCase() === listName.toLowerCase());
+    if (!list) {
+        const { data } = await insertList(listName);
+        list = data;
+
+        addToCachedList(data);
+    }
+
+    return list.id;
 };
 
 const getGameInfo = async (gameName) => {
@@ -41,11 +68,11 @@ const getGameInfo = async (gameName) => {
                     value: $(element).find('td').text()
                 };
             }
-    
+
             return result;
         }).get()
         .reduce((obj, item) => (obj[item.key] = _getSanitizedText(item.value), obj), {});
-    
+
     if (title.length > 0 && gameInfoLet) {
         result = {
             title,
@@ -56,27 +83,15 @@ const getGameInfo = async (gameName) => {
     return result;
 };
 
-const createGameCardFor = async ({ name, listName, labelNames = [] }) => {
-    let title;
-    let description;
-
+const createGameCardFor = async ({ name, listName = 'Temp', labelNames = [] }) => {
     const gameInfo = await getGameInfo(name);
-
-    if (!isBlank(gameInfo)) {
-        title = gameInfo.title;
-        description = `Developer(s): ${gameInfo.developer}\n\nPublisher(s): ${gameInfo.publisher}`;
-    } else {
-        title = name;
-        description = 'Developer(s): \n\nPublisher(s): ';
-    }
-
-    const lists = await getCachedLists();
-    const list = lists.find(list => list.name.toLowerCase() === listName.toLowerCase());
-    const listId = list?.id;
+    const { title, description } = _getCardContentFrom(name, gameInfo);
+    const listId = await _getListId(listName);
 
     const filterLabelsWithUserChoicesFn = label => labelNames
         .map(it => it.toLowerCase())
         .includes(label.name.toLowerCase());
+
     const labels = await getCachedLabels();
     const sanitizedLabels = labels.filter(filterLabelsWithUserChoicesFn);
     const labelIds = sanitizedLabels?.map(label => label.id);
