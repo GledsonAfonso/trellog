@@ -1,4 +1,6 @@
-require('dotenv').config();
+const envPath = `${__dirname}/.env`;
+
+require('dotenv').config({ path: envPath });
 require('./src/configuration/environment');
 
 const clear = require('clear');
