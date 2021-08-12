@@ -1,5 +1,3 @@
-const cheerio = require('cheerio');
-
 const { get } = require('./http-service');
 
 const baseUrl = 'https://en.wikipedia.org/api/rest_v1';

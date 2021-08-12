@@ -18,7 +18,7 @@ describe('game service', () => {
 
         const expectedResult = {
             title: 'Super Mario Bros. 3',
-            developer: 'Nintendo EAD',
+            developer: 'Nintendo R&D4',
             publisher: 'Nintendo'
         };
 
@@ -32,6 +32,30 @@ describe('game service', () => {
             title: 'Corpse Party',
             developer: 'Team GrisGris (1996–present); 5pb. (2010–present); Mages. (2011–2012); GrindHouse (2013–present)',
             publisher: 'Kenix Soft (1996); Team GrisGris (2006); 5pb (2010–present); Marvelous USA (2011–present); GrindHouse (2013–present)'
+        };
+
+        expect(gameInfo).toEqual(expectedResult);
+    });
+
+    test('should be able to get a game info on Steam when there\'s no info about it on Wikipedia', async () => {
+        const gameInfo = await getGameInfo('Radio the Universe');
+
+        const expectedResult = {
+            title: 'Radio the Universe',
+            developer: '6E6E6E',
+            publisher: '6E6E6E'
+        };
+
+        expect(gameInfo).toEqual(expectedResult);
+    });
+
+    test('should be able to get a game info on Steam when there\'s more than one developer and/or publisher', async () => {
+        const gameInfo = await getGameInfo('BioShock 2 Remastered');
+
+        const expectedResult = {
+            title: 'BioShock 2 Remastered',
+            developer: '2K Marin; 2K China; Digital Extremes; 2K Australia; Blind Squirrel; Feral Interactive (Mac)',
+            publisher: '2K; Feral Interactive (Mac)'
         };
 
         expect(gameInfo).toEqual(expectedResult);
