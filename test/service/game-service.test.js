@@ -131,5 +131,17 @@ describe('game service', () => {
     
             expect(gameInfo).toEqual(expectedResult);
         });
+
+        test('should not include anchors in developers/publishers text', async () => {
+            const gameInfo = await getGameInfo('Deus Ex: Mankind Divided');
+    
+            const expectedResult = {
+                title: 'Deus Ex: Mankind Divided',
+                developer: 'Eidos Montréal',
+                publisher: 'Square Enix'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+        });
     });
 });

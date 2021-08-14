@@ -9,16 +9,16 @@ const _getSanitizedText = (infoText) => {
     const prefixRegex = /^\n/;
     const suffixRegex = /\n\n$/;
     const generalRegex = /\n/g;
-    const prefixRegionRegex = /^(JP:|EU:|WW:|NA:)(\s*)/gi
-    const regionRegex = /(JP:|EU:|WW:|NA:)(\s*)/gi
-
-    const asf = regionRegex.exec(infoText);
+    const prefixRegionRegex = /^(JP:|EU:|WW:|NA:)(\s*)/gi;
+    const regionRegex = /(JP:|EU:|WW:|NA:)(\s*)/gi;
+    const anchorRegex = /(\[lower-alpha.*\])(\s*)/gi;
 
     let sanitizedInfoText = infoText.replace(prefixRegex, '');
     sanitizedInfoText = sanitizedInfoText.replace(suffixRegex, '');
     sanitizedInfoText = sanitizedInfoText.replace(generalRegex, '; ');
     sanitizedInfoText = sanitizedInfoText.replace(prefixRegionRegex, '');
     sanitizedInfoText = sanitizedInfoText.replace(regionRegex, '; ');
+    sanitizedInfoText = sanitizedInfoText.replace(anchorRegex, '');
 
     return sanitizedInfoText;
 };
