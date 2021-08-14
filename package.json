@@ -1,6 +1,6 @@
 {
   "name": "trellog",
-  "version": "1.1.0",
+  "version": "1.1.3",
   "description": "A simple application to search for a game's info and insert it on your Trello board as a card",
   "main": "index.js",
   "type": "commonjs",
