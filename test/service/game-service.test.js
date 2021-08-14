@@ -119,5 +119,17 @@ describe('game service', () => {
     
             expect(gameInfo).toEqual(expectedResult);
         });
+
+        test('should be able to add a card without concatenate the developers/publishers names', async () => {
+            const gameInfo = await getGameInfo('The House in Fata Morgana');
+    
+            const expectedResult = {
+                title: 'The House in Fata Morgana',
+                developer: 'Novectacle',
+                publisher: 'Novectacle; FuRyu (3DS); Dramatic Create (PS Vita); MangaGamer (PC); Mighty Rabbit Studios (digital PS4/PS Vita); Limited Run Games (physical PS4/PS Vita)'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+        });
     });
 });
