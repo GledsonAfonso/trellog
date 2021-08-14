@@ -129,8 +129,8 @@ const archiveList = async (name) => {
 };
 
 const deleteCardBy = async (name, listName) => {
-    const { id } = await getCardBy(name, listName);
-    const url = `${baseUrl}/cards/${id}?${_getCredentialsUri()}`;
+    const card = await getCardBy(name, listName);
+    const url = `${baseUrl}/cards/${card?.id}?${_getCredentialsUri()}`;
 
     return del({ url });
 };

@@ -193,8 +193,8 @@ const _getGameInfoOnSteam = async (gameName) => {
 
 const getGameInfo = async (gameName) => {
     let result = await _getGameInfoOnWikipedia(gameName);
-
-    if (!result) {
+    
+    if (!result?.title || !result?.developer || !result?.publisher) {
         result = await _getGameInfoOnSteam(gameName);
     }
 
