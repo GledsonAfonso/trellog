@@ -191,5 +191,29 @@ describe('game service', () => {
     
             expect(gameInfo).toEqual(expectedResult);
         });
+
+        test('should sanitize titles like Yakuza Kiwami correctly', async () => {
+            let gameName = 'Yakuza Kiwami'
+            let gameInfo = await getGameInfo(gameName);
+    
+            let expectedResult = {
+                title: gameName,
+                developer: 'Ryu Ga Gotoku Studio',
+                publisher: 'Sega; Deep Silver'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+            
+            gameName = 'Tales of Vesperia'
+            gameInfo = await getGameInfo(gameName);
+    
+            expectedResult = {
+                title: gameName,
+                developer: 'Namco Tales Studio',
+                publisher: 'Namco Bandai Games; Atari'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+        });
     });
 });

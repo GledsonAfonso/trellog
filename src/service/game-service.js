@@ -33,7 +33,7 @@ const _getListId = async (listName) => {
     return list.id;
 };
 
-const _isNotInvalidSymbol = (text) => !/^(\s*|:|\(.*\)|JP|WW|EU|NA|\[lower-alpha.*\])$/gi.test(text);
+const _isNotInvalidSymbol = (text) => !/^(\s*|:|\(.*\)|JP|WW|EU|NA|PAL|\[lower-alpha.*\]|\/)$/gi.test(text);
 
 const _sanitizeText = (text) => {
     let result = text.replace(/\(.*\)/g, '');
