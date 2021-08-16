@@ -178,5 +178,18 @@ describe('game service', () => {
             
             expect(gameInfo).toBeUndefined();
         });
+
+        test('should add semicolons for cases like Touhou Luna Nights', async () => {
+            const gameName = 'Touhou Luna Nights'
+            const gameInfo = await getGameInfo(gameName);
+    
+            const expectedResult = {
+                title: gameName,
+                developer: 'Team Ladybug',
+                publisher: 'Playism'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+        });
     });
 });
