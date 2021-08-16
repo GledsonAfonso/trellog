@@ -31,8 +31,8 @@ describe('game service', () => {
     
             const expectedResult = {
                 title: 'Corpse Party',
-                developer: 'Team GrisGris (1996–present); 5pb. (2010–present); Mages. (2011–2012); GrindHouse (2013–present)',
-                publisher: 'Kenix Soft (1996); Team GrisGris (2006); 5pb (2010–present); Marvelous USA (2011–present); GrindHouse (2013–present)'
+                developer: 'Team GrisGris; 5pb.; Mages.; GrindHouse',
+                publisher: 'Kenix Soft; Team GrisGris; 5pb; Marvelous USA; GrindHouse'
             };
     
             expect(gameInfo).toEqual(expectedResult);
@@ -121,12 +121,35 @@ describe('game service', () => {
         });
 
         test('should be able to add a card without concatenate the developers/publishers names', async () => {
-            const gameInfo = await getGameInfo('The House in Fata Morgana');
+            let gameName = 'The House in Fata Morgana';
+            let gameInfo = await getGameInfo(gameName);
     
-            const expectedResult = {
-                title: 'The House in Fata Morgana',
+            let expectedResult = {
+                title: gameName,
                 developer: 'Novectacle',
-                publisher: 'Novectacle; FuRyu (3DS); Dramatic Create (PS Vita); MangaGamer (PC); Mighty Rabbit Studios (digital PS4/PS Vita); Limited Run Games (physical PS4/PS Vita)'
+                publisher: 'Novectacle; FuRyu; Dramatic Create; MangaGamer; Mighty Rabbit Studios; Limited Run Games'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+
+            gameName = 'Gears of War';
+            gameInfo = await getGameInfo(gameName);
+    
+            expectedResult = {
+                title: gameName,
+                developer: 'Epic Games; People Can Fly; The Coalition; Mediatonic; Splash Damage',
+                publisher: 'Xbox Game Studios'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+
+            gameName = 'Cris Tales';
+            gameInfo = await getGameInfo(gameName);
+    
+            expectedResult = {
+                title: gameName,
+                developer: 'Dreams Uncorporated; Syck',
+                publisher: 'Modus Games'
             };
     
             expect(gameInfo).toEqual(expectedResult);

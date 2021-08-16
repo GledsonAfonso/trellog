@@ -5,24 +5,6 @@ const { addToCachedList, getCachedLists, getCachedLabels } = require('./board-se
 const wikipediaService = require('./wikipedia-service');
 const steamService = require('./steam-service');
 
-const _getSanitizedText = (infoText) => {
-    const prefixRegex = /^\n/;
-    const suffixRegex = /\n\n$/;
-    const generalRegex = /\n/g;
-    const prefixRegionRegex = /^(JP:|EU:|WW:|NA:)(\s*)/gi;
-    const regionRegex = /(JP:|EU:|WW:|NA:)(\s*)/gi;
-    const anchorRegex = /(\[lower-alpha.*\])(\s*)/gi;
-
-    let sanitizedInfoText = infoText.replace(prefixRegex, '');
-    sanitizedInfoText = sanitizedInfoText.replace(suffixRegex, '');
-    sanitizedInfoText = sanitizedInfoText.replace(generalRegex, '; ');
-    sanitizedInfoText = sanitizedInfoText.replace(prefixRegionRegex, '');
-    sanitizedInfoText = sanitizedInfoText.replace(regionRegex, '; ');
-    sanitizedInfoText = sanitizedInfoText.replace(anchorRegex, '');
-
-    return sanitizedInfoText;
-};
-
 const _getDescription = (developer = '', publisher = '') => `Developer(s): ${developer}\n\nPublisher(s): ${publisher}`;
 
 const _getCardContentFrom = (title, gameInfo) => {
@@ -51,6 +33,37 @@ const _getListId = async (listName) => {
     return list.id;
 };
 
+const _isNotInvalidSymbol = (text) => !/^(\s*|:|\(.*\)|JP|WW|EU|NA|\[lower-alpha.*\])$/gi.test(text);
+
+const _sanitizeText = (text) => {
+    let result = text.replace(/\(.*\)/g, '');
+    result = result.trim();
+
+    return result;
+};
+
+const _getValuesFromWikipediaElement = (key, $, element) => {
+    let value = $(element).find('td *').contents()
+        .map((_, innerElement) => (innerElement.type === 'text') ? $(innerElement).text().trim() : '')
+        .get()
+        .filter(_isNotInvalidSymbol)
+        .map(_sanitizeText)
+        .join('; ');
+    
+    if (value.length === 0) {
+        value = $(element).find('td')
+            .text()
+            .trim();
+    }
+
+    let result = {
+        key,
+        value
+    };
+
+    return result;
+};
+
 const _getGameInfoOnWikipedia = async (gameName) => {
     let result;
 
@@ -65,20 +78,15 @@ const _getGameInfoOnWikipedia = async (gameName) => {
 
             let result;
             if (isDeveloperInfo) {
-                result = {
-                    key: 'developer',
-                    value: $(element).find('td').text()
-                };
+                result = _getValuesFromWikipediaElement('developer', $, element);
             } else if (isPublisherInfo) {
-                result = {
-                    key: 'publisher',
-                    value: $(element).find('td').text()
-                };
+                result = _getValuesFromWikipediaElement('publisher', $, element);
             }
 
             return result;
-        }).get()
-        .reduce((obj, item) => (obj[item.key] = _getSanitizedText(item.value), obj), {});
+        })
+        .get()
+        .reduce((obj, item) => (obj[item.key] = item.value, obj), {});
 
     if (title.length > 0 && gameInfoLet) {
         result = {
