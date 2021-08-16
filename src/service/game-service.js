@@ -42,24 +42,74 @@ const _sanitizeText = (text) => {
     return result;
 };
 
-const _getValuesFromWikipediaElement = (key, $, element) => {
-    let value = $(element).find('td *').contents()
+const _getTextWithoutTrademarkSymbols = (text) => {
+    const result = text.replace(/[™®©℠]/, '');
+    return result;
+};
+
+const _isSameGame = (insertedTitle, scrapedTitle) => {
+    const sanitizedInsertedTitle = insertedTitle.replace(/[:-]/, '');
+    const sanitizedScrapedTitle = scrapedTitle.replace(/[:-]/, '');
+
+    return sanitizedScrapedTitle.toLowerCase() === sanitizedInsertedTitle.toLowerCase();
+};
+
+const _getValuesFromWikipediaElement = ($, element) => {
+    let result = $(element).find('td *').contents()
         .map((_, innerElement) => (innerElement.type === 'text') ? $(innerElement).text().trim() : '')
         .get()
         .filter(_isNotInvalidSymbol)
         .map(_sanitizeText)
         .join('; ');
     
-    if (value.length === 0) {
-        value = $(element).find('td')
+    if (result.length === 0) {
+        result = $(element).find('td')
             .text()
             .trim();
     }
 
-    let result = {
-        key,
-        value
-    };
+    return result;
+};
+
+const _getValuesFromSteamElement = ($, element) => {
+    let result = $(element).find('div.summary > a')
+        .toArray()
+        .map(element => $(element).text())
+        .join('; ');
+    
+    return result;
+};
+
+const _getGameInfo = (
+    title,
+    $,
+    gameInfoElement,
+    developerElementVerificationPath,
+    publisherElementVerificationPath,
+    getElementValueFn
+) => {
+    let result;
+    let developer = '';
+    let publisher = '';
+
+    gameInfoElement.toArray().forEach(element => {
+        const isDeveloperInfo = $(element).find(developerElementVerificationPath).html() !== null;
+        const isPublisherInfo = $(element).find(publisherElementVerificationPath).html() !== null;
+
+        if (isDeveloperInfo) {
+            developer = getElementValueFn($, element);
+        } else if (isPublisherInfo) {
+            publisher = getElementValueFn($, element);
+        }
+    });
+    
+    if (developer?.length > 0 && publisher?.length > 0) {
+        result = {
+            title,
+            developer,
+            publisher
+        };
+    }
 
     return result;
 };
@@ -71,51 +121,17 @@ const _getGameInfoOnWikipedia = async (gameName) => {
     let $ = cheerio.load(page);
 
     const title = $('head > title').text();
-    const gameInfoLet = $('body > section > table.infobox.hproduct > tbody > tr')
-        .map((_, element) => {
-            const isDeveloperInfo = $(element).find('th > a:contains("Developer")').html() !== null;
-            const isPublisherInfo = $(element).find('th > a:contains("Publisher")').html() !== null;
 
-            let result;
-            if (isDeveloperInfo) {
-                result = _getValuesFromWikipediaElement('developer', $, element);
-            } else if (isPublisherInfo) {
-                result = _getValuesFromWikipediaElement('publisher', $, element);
-            }
+    const gameInfoElement = $('body > section > table.infobox.hproduct > tbody > tr');
+    result = _getGameInfo(
+        title,
+        $,
+        gameInfoElement,
+        'th > a:contains("Developer")',
+        'th > a:contains("Publisher")',
+        _getValuesFromWikipediaElement
+    );
 
-            return result;
-        })
-        .get()
-        .reduce((obj, item) => (obj[item.key] = item.value, obj), {});
-
-    if (title.length > 0 && gameInfoLet) {
-        result = {
-            title,
-            ...gameInfoLet
-        };
-    }
-
-    return result;
-};
-
-const _isSameGame = (insertedTitle, scrapedTitle) => {
-    const sanitizedInsertedTitle = insertedTitle.replace(/[:-]/, '');
-    const sanitizedScrapedTitle = scrapedTitle.replace(/[:-]/, '');
-
-    return sanitizedScrapedTitle.toLowerCase().includes(sanitizedInsertedTitle.toLowerCase());
-};
-
-const _collectSummaryTexts = ($, element) => {
-    let result = $(element).find('div.summary > a')
-        .toArray()
-        .map(element => $(element).text())
-        .join('; ');
-    
-    return result;
-};
-
-const _getTextWithoutTrademarkSymbols = (text) => {
-    const result = text.replace(/[™®©℠]/, '');
     return result;
 };
 
@@ -178,27 +194,15 @@ const _getGameInfoOnSteam = async (gameName) => {
                  > div.glance_ctn_responsive_left
                  > div.dev_row
             `);
-        
-            let developer = '';
-            let publisher = '';
-            gameInfoElement.toArray().forEach(element => {
-                const isDeveloperInfo = $(element).find('div.subtitle:contains("Developer")').html() !== null;
-                const isPublisherInfo = $(element).find('div.subtitle:contains("Publisher")').html() !== null;
-        
-                if (isDeveloperInfo) {
-                    developer = _collectSummaryTexts($, element);
-                } else if (isPublisherInfo) {
-                    publisher = _collectSummaryTexts($, element);
-                }
-            });
-            
-            if (developer?.length > 0 && publisher?.length > 0) {
-                result = {
-                    title,
-                    developer,
-                    publisher
-                };
-            }
+
+            result = _getGameInfo(
+                title,
+                $,
+                gameInfoElement,
+                'div.subtitle:contains("Developer")',
+                'div.subtitle:contains("Publisher")',
+                _getValuesFromSteamElement
+            );
         }
     }
 

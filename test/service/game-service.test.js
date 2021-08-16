@@ -166,5 +166,17 @@ describe('game service', () => {
     
             expect(gameInfo).toEqual(expectedResult);
         });
+
+        test('should give empty info for titles which causes ambiguity in Wikipedia and Steam searches ', async () => {
+            let gameName = 'Haven';
+            let gameInfo = await getGameInfo(gameName);
+    
+            expect(gameInfo).toBeUndefined();
+            
+            gameName = 'The Medium';
+            gameInfo = await getGameInfo(gameName);
+            
+            expect(gameInfo).toBeUndefined();
+        });
     });
 });
