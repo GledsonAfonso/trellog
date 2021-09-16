@@ -31,7 +31,7 @@ describe('game service', () => {
     
             const expectedResult = {
                 title: 'Corpse Party',
-                developer: 'Team GrisGris; 5pb.; Mages.; GrindHouse',
+                developer: 'Team GrisGris; 5pb.; Mages.',
                 publisher: 'Kenix Soft; Team GrisGris; 5pb; Marvelous USA; GrindHouse'
             };
     
@@ -172,11 +172,6 @@ describe('game service', () => {
             let gameInfo = await getGameInfo(gameName);
     
             expect(gameInfo).toBeUndefined();
-            
-            gameName = 'The Medium';
-            gameInfo = await getGameInfo(gameName);
-            
-            expect(gameInfo).toBeUndefined();
         });
 
         test('should add semicolons for cases like Touhou Luna Nights', async () => {
@@ -186,13 +181,13 @@ describe('game service', () => {
             const expectedResult = {
                 title: gameName,
                 developer: 'Team Ladybug',
-                publisher: 'Playism'
+                publisher: 'Playism; Active Gaming Media'
             };
     
             expect(gameInfo).toEqual(expectedResult);
         });
 
-        test('should sanitize titles like Yakuza Kiwami correctly', async () => {
+        test('should sanitize titles correctly to not have cluster in their info ([1], publisher repetition etc)', async () => {
             let gameName = 'Yakuza Kiwami'
             let gameInfo = await getGameInfo(gameName);
     
@@ -214,6 +209,44 @@ describe('game service', () => {
             };
     
             expect(gameInfo).toEqual(expectedResult);
+            
+            gameName = 'Tales of the Abyss'
+            gameInfo = await getGameInfo(gameName);
+    
+            expectedResult = {
+                title: gameName,
+                developer: 'Namco Tales Studio',
+                publisher: 'Namco; Namco Bandai Games'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+            
+            gameName = 'Professor Layton vs. Phoenix Wright: Ace Attorney'
+            gameInfo = await getGameInfo(gameName);
+    
+            expectedResult = {
+                title: gameName,
+                developer: 'Capcom; Level-5',
+                publisher: 'Level-5; Nintendo'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+            
+            gameName = 'Nioh'
+            gameInfo = await getGameInfo(gameName);
+    
+            expectedResult = {
+                title: gameName,
+                developer: 'Team Ninja; Kou Shibusawa',
+                publisher: 'Sony Interactive Entertainment; Koei Tecmo'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
+        });
+
+        test('should not crash when searching a game with a unusual character in their name', async () => {
+            let gameName = 'NINJA GAIDEN Σ'
+            expect(getGameInfo(gameName)).resolves.toBeUndefined();
         });
     });
 });

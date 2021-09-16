@@ -3,7 +3,8 @@ const { get } = require('./http-service');
 const baseUrl = 'https://store.steampowered.com';
 
 const searchFor = async (query) => {
-    const url = `${baseUrl}/search/?term=${query}`;
+    const encodedQuery = encodeURI(query);
+    const url = `${baseUrl}/search/?term=${encodedQuery}`;
     return await get({ url });
 };
 

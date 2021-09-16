@@ -33,7 +33,14 @@ const _getListId = async (listName) => {
     return list.id;
 };
 
-const _isNotInvalidSymbol = (text) => !/^(\s*|:|\(.*\)|JP|WW|EU|NA|PAL|\[lower-alpha.*\]|\/)$/gi.test(text);
+const _isNotInvalidSymbol = (text) => {
+    const isNotInvalidSymbol = !/^(\s*|:|\(.*\)|JP|WW|EU|NA|PAL|\[lower-alpha.*\]|\[[0-9]+\]|\/)$/gi.test(text);
+    const isNotDatePeriod = !/\d+\–\d+/gi.test(text);
+
+    return isNotInvalidSymbol && isNotDatePeriod;
+}
+
+const _isNotConsoleName = (text) => !/(playstation|microsoft\s+windows|xbox)/gi.test(text);
 
 const _sanitizeText = (text) => {
     let result = text.replace(/\(.*\)/g, '');
@@ -55,12 +62,16 @@ const _isSameGame = (insertedTitle, scrapedTitle) => {
 };
 
 const _getValuesFromWikipediaElement = ($, element) => {
-    let result = $(element).find('td *').contents()
+    let info = $(element).find('td *').contents()
         .map((_, innerElement) => (innerElement.type === 'text') ? $(innerElement).text().trim() : '')
         .get()
         .filter(_isNotInvalidSymbol)
-        .map(_sanitizeText)
-        .join('; ');
+        .filter(_isNotConsoleName)
+        .map(_sanitizeText);
+
+    info = Array.from(new Set(info));
+    
+    let result = info.join('; ');
     
     if (result.length === 0) {
         result = $(element).find('td')
