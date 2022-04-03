@@ -220,11 +220,18 @@ const _getGameInfoOnSteam = async (gameName) => {
     return result;
 };
 
-const getGameInfo = async (gameName) => {
+const _isInvalidGameInfo = (gameInfo) => !gameInfo?.title || !gameInfo?.developer || !gameInfo?.publisher;
+
+const getGameInfo = async (gameName, isFirstTry = true) => {
     let result = await _getGameInfoOnWikipedia(gameName);
     
-    if (!result?.title || !result?.developer || !result?.publisher) {
+    if (_isInvalidGameInfo(result)) {
         result = await _getGameInfoOnSteam(gameName);
+    }
+
+    if (_isInvalidGameInfo(result) && isFirstTry) {
+        const gameNameInTitleCase = gameName.replaceAll(/(\w)(\w*)/g, (_, firstLetter, restOfString) => firstLetter.toUpperCase() + restOfString.toLowerCase());
+        result = await getGameInfo(gameNameInTitleCase, false);
     }
 
     return result;

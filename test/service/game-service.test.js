@@ -237,9 +237,17 @@ describe('game service', () => {
             expect(gameInfo).toEqual(expectedResult);
         });
 
-        test('should not crash when searching a game with a unusual character in their name', async () => {
-            let gameName = 'NINJA GAIDEN Σ'
-            expect(getGameInfo(gameName)).resolves.toBeUndefined();
+        test('should be able to search for titles written in a mixture of uppercase and lower case letters', async () => {
+            const gameName = 'GRANBLUE FANTASY: Relink'
+            const gameInfo = await getGameInfo(gameName);
+    
+            const expectedResult = {
+                title: 'Granblue Fantasy: Relink',
+                developer: 'Cygames',
+                publisher: 'Cygames'
+            };
+    
+            expect(gameInfo).toEqual(expectedResult);
         });
     });
 });
