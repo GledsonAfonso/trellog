@@ -131,7 +131,7 @@ const _getGameInfoOnWikipedia = async (gameName) => {
     let { data: page } = await wikipediaService.searchFor(gameName);
     let $ = cheerio.load(page);
 
-    const title = $('head > title').text();
+    const title = $('head > title').text().replaceAll(/<(\/?)\w+>/gi, '');
 
     const gameInfoElement = $('body > section > table.infobox.hproduct > tbody > tr');
     result = _getGameInfo(
