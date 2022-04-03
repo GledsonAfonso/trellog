@@ -43,7 +43,7 @@ const _act = async (answers) => {
 
 const mainMenu = async (lists = [], labels = []) => {
   const listNames = lists.map(it => it.name);
-  const labelNames = labels.map(it => it.name);
+  const labelNames = labels.map(it => it.name).sort();
 
   const prompts = [
     {
@@ -75,7 +75,6 @@ const mainMenu = async (lists = [], labels = []) => {
       name: 'chooseLabel',
       message: 'With which label?',
       choices: labelNames,
-      default: labelNames.find(it => it.toLowerCase().includes('steam')),
       when: (answers) => answers?.mainMenu === MainMenuSteps.INSERT_NEW_GAME_CARD && labelNames?.length > 0
     },
     {
