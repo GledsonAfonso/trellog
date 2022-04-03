@@ -114,7 +114,7 @@ describe('game service', () => {
             const expectedResult = {
                 title: 'The Ascent',
                 developer: 'Neon Giant',
-                publisher: 'Curve Digital'
+                publisher: 'Curve Games'
             };
     
             expect(gameInfo).toEqual(expectedResult);
@@ -137,7 +137,7 @@ describe('game service', () => {
     
             expectedResult = {
                 title: gameName,
-                developer: 'Epic Games; People Can Fly; The Coalition; Mediatonic; Splash Damage',
+                developer: 'Epic Games; The Coalition; People Can Fly; Splash Damage; Mediatonic',
                 publisher: 'Xbox Game Studios'
             };
     
@@ -167,13 +167,6 @@ describe('game service', () => {
             expect(gameInfo).toEqual(expectedResult);
         });
 
-        test('should give empty info for titles which causes ambiguity in Wikipedia and Steam searches ', async () => {
-            let gameName = 'Haven';
-            let gameInfo = await getGameInfo(gameName);
-    
-            expect(gameInfo).toBeUndefined();
-        });
-
         test('should add semicolons for cases like Touhou Luna Nights', async () => {
             const gameName = 'Touhou Luna Nights'
             const gameInfo = await getGameInfo(gameName);
@@ -181,7 +174,7 @@ describe('game service', () => {
             const expectedResult = {
                 title: gameName,
                 developer: 'Team Ladybug',
-                publisher: 'Playism; Active Gaming Media'
+                publisher: 'Playism; Phoenixx'
             };
     
             expect(gameInfo).toEqual(expectedResult);
