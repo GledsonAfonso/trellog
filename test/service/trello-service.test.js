@@ -76,14 +76,14 @@ describe('trello service', () => {
 
     test('should be able to update a card by its name and list name', async () => {
         const newDescription = 'blablabla';
-        const { name, desc } = await updateCard(generalTestCardName, listForTest.name, { description: newDescription });
+        const { name, desc } = await updateCard({ cardName: generalTestCardName, listName: listForTest.name, updates: { description: newDescription } });
 
         expect(name).toBe(generalTestCardName);
         expect(desc).toBe(newDescription);
     });
 
     test('should be able to update a card putting it in another list', async () => {
-        const { name, idList } = await updateCard(generalTestCardName, listForTest.name, { listName: secondListForTest.name });
+        const { name, idList } = await updateCard({ cardName: generalTestCardName, listName: listForTest.name, updates: { listName: secondListForTest.name } });
 
         expect(name).toBe(generalTestCardName);
         expect(idList).toBe(secondListForTest.id);

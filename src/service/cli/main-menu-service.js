@@ -1,12 +1,13 @@
 const inquirer = require('inquirer');
 const inquirerFileTreeSelection = require('inquirer-file-tree-selection-prompt');
 
-const { createGameCardFor } = require('../game-service');
+const { createGameCardFor, updateGameCardsWithoutDescription } = require('../game-service');
 const { getGameNamesFromFile } = require('../file-service');
 
 const MainMenuSteps = {
   INSERT_NEW_GAME_CARD: 'Insert a new game card',
   INSERT_NEW_GAME_CARDS_USING_FILE: 'Insert new game cards using a file',
+  UPDATE_CARDS_WITH_EMPTY_DESCRIPTION: 'Update cards with empty description',
   EXIT: 'Exit'
 };
 
@@ -35,6 +36,9 @@ const _act = async (answers) => {
       const promises = names.map(name => addCard(name));
       await Promise.all(promises);
       break;
+    case MainMenuSteps.UPDATE_CARDS_WITH_EMPTY_DESCRIPTION:
+      await updateGameCardsWithoutDescription();
+      break;
     default:
       console.log('Exiting...');
       process.exit(0);
@@ -53,6 +57,7 @@ const mainMenu = async (lists = [], labels = []) => {
       choices: [
         MainMenuSteps.INSERT_NEW_GAME_CARD,
         MainMenuSteps.INSERT_NEW_GAME_CARDS_USING_FILE,
+        MainMenuSteps.UPDATE_CARDS_WITH_EMPTY_DESCRIPTION,
         MainMenuSteps.EXIT
       ]
     },

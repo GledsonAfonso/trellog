@@ -90,7 +90,7 @@ const getCards = async () => {
     
     let responses = await Promise.all(promises);
 
-    return responses.map(response => response.data);
+    return responses.map(response => response.data).flat(1);
 };
 
 const getCardBy = async (name, listName) => {
@@ -107,8 +107,17 @@ const getCardBy = async (name, listName) => {
     return result;
 };
 
-const updateCard = async (originalName, originalListName, updates = {}) => {
-    let card = await getCardBy(originalName, originalListName);
+const updateCard = async ({ originalCard, cardName, listName, updates = {} }) => {
+    let card;
+    
+    if (originalCard) {
+        card = originalCard;
+    } else {
+        card = await getCardBy(cardName, listName);
+    }
+
+    console.log(`Updating ${card.name}...`);
+
     card = await _getUpdatedCard(card, updates);
 
     const url = `${baseUrl}/cards/${card.id}?${_getCredentialsUri()}`;

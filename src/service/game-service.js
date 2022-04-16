@@ -1,9 +1,11 @@
 const cheerio = require('cheerio');
+const asyncPool = require('tiny-async-pool');
 
-const { insertCard, insertList, deleteCardBy } = require('./trello-service');
+const { insertCard, insertList, getCards, updateCard, deleteCardBy } = require('./trello-service');
 const { addToCachedList, getCachedLists, getCachedLabels } = require('./board-service');
 const wikipediaService = require('./wikipedia-service');
 const steamService = require('./steam-service');
+const { writeGameNamesInFile } = require('./file-service');
 
 const _getDescription = (developer = '', publisher = '') => `Developer(s): ${developer}\n\nPublisher(s): ${publisher}`;
 
@@ -91,7 +93,7 @@ const _getValuesFromSteamElement = ($, element) => {
     return result;
 };
 
-const _getGameInfo = (
+const _getGameInfoFromWebPage = (
     title,
     $,
     gameInfoElement,
@@ -134,7 +136,7 @@ const _getGameInfoOnWikipedia = async (gameName) => {
     const title = $('head > title').text().replaceAll(/<(\/?)\w+>/gi, '');
 
     const gameInfoElement = $('body > section > table.infobox.hproduct > tbody > tr');
-    result = _getGameInfo(
+    result = _getGameInfoFromWebPage(
         title,
         $,
         gameInfoElement,
@@ -206,7 +208,7 @@ const _getGameInfoOnSteam = async (gameName) => {
                  > div.dev_row
             `);
 
-            result = _getGameInfo(
+            result = _getGameInfoFromWebPage(
                 title,
                 $,
                 gameInfoElement,
@@ -222,7 +224,7 @@ const _getGameInfoOnSteam = async (gameName) => {
 
 const _isInvalidGameInfo = (gameInfo) => !gameInfo?.title || !gameInfo?.developer || !gameInfo?.publisher;
 
-const getGameInfo = async (gameName, isFirstTry = true) => {
+const _getGameInfo = async (gameName, isFirstTry = true) => {
     let result = await _getGameInfoOnWikipedia(gameName);
     
     if (_isInvalidGameInfo(result)) {
@@ -231,11 +233,25 @@ const getGameInfo = async (gameName, isFirstTry = true) => {
 
     if (_isInvalidGameInfo(result) && isFirstTry) {
         const gameNameInTitleCase = gameName.replaceAll(/(\w)(\w*)/g, (_, firstLetter, restOfString) => firstLetter.toUpperCase() + restOfString.toLowerCase());
-        result = await getGameInfo(gameNameInTitleCase, false);
+        result = await _getGameInfo(gameNameInTitleCase, false);
     }
 
     return result;
 };
+
+const _getUpdateCardParameters = async (card) => {
+    const gameName = card.name;
+    const info = await _getGameInfo(gameName);
+
+    if (info?.title) {
+        const description = _getDescription(info.developer, info.publisher);
+        return { originalCard: card, updates: { description }};
+    } else {
+        return undefined;
+    }
+};
+
+const getGameInfo = (gameName) => _getGameInfo(gameName);
 
 const createGameCardFor = async ({ name, listName = 'Temp', labelNames = [] }) => {
     const gameInfo = await getGameInfo(name);
@@ -253,6 +269,24 @@ const createGameCardFor = async ({ name, listName = 'Temp', labelNames = [] }) =
     return await insertCard(title, description, listId, labelIds);
 };
 
+const updateGameCardsWithoutDescription = async () => {
+    let cards = await getCards();
+    const cardsWithoutDescription = cards.filter(card => !card.desc);
+
+    console.log('Games without description before procedure: ', cardsWithoutDescription.length);
+
+    for await (const updateCardParameters of asyncPool(10, cardsWithoutDescription, _getUpdateCardParameters)) {
+        if (updateCardParameters) {
+            await updateCard(updateCardParameters);
+        }
+    }
+
+    cards = await getCards();
+    const names = cards.filter(card => !card.desc).map(card => card.name);
+
+    writeGameNamesInFile(names);
+};
+
 const deleteGameCardBy = async ({ name, listName = 'Temp' }) => await deleteCardBy(name, listName);
 
-module.exports = { getGameInfo, createGameCardFor, deleteGameCardBy };
+module.exports = { getGameInfo, createGameCardFor, updateGameCardsWithoutDescription, deleteGameCardBy };
